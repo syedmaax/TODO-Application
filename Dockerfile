@@ -1,26 +1,20 @@
-# Use an official OpenJDK 21 image with Maven as a build environment
+# Stage 1: Build with Maven
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
-
-# Copy project files
 COPY pom.xml .
 COPY src ./src
-
-# Build the project without running tests
 RUN mvn clean package -DskipTests
 
-# Use a smaller JRE 21 image for running the app
+# Stage 2: Run the app with minimal JRE
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-
-# Copy the built JAR from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose port 8080 (Render default)
+# Expose port 8080
 EXPOSE 8080
 
-# Set environment variables for Java
+# Optional: allow JVM flags
 ENV JAVA_OPTS=""
 
-# Run the application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# Run the Spring Boot application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
